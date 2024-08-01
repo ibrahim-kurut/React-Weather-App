@@ -7,7 +7,8 @@ import { MdSunny } from "react-icons/md";
 import { WiHumidity } from "react-icons/wi";
 import { FaWind } from "react-icons/fa6";
 
-
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 
 function App() {
@@ -27,15 +28,25 @@ function App() {
       })
       .catch(error => {
         console.error('Error fetching weather data:', error);
+        if (error.request.status === 400) {
+          toast.error("Please enter the city name")
+        } else {
+          toast.error(error.response.data.message)
+        }
+
       });
 
     setLocation('')
   }
 
 
+  const fahrenheitToCelsius = () => {
+    return (data.main.temp - 273.15).toFixed(2)
+  }
 
   return (
     <div className="app">
+      <ToastContainer position="top-right" theme="colored" />
       <div className="search flex justify-center pt-20">
         <div className="flex justify-between w-80 p-3  border border-gray-700 rounded-3xl">
           <input
@@ -56,7 +67,7 @@ function App() {
             {data.name ? <p className="text-4xl">{data.name}</p> : "Secelet Location"}
           </div>
           <div className="temp text-6xl font-bold">
-            {data.name ? <h1>{data.main.temp}°F</h1> : ""}
+            {data.name ? <h1>{fahrenheitToCelsius()}°C</h1> : ""}
 
           </div>
           <div className="description text-2xl  mr-12">
@@ -65,7 +76,7 @@ function App() {
                 <span className="">{data.weather[0].main === "Clouds" ? <FaCloud size={40} /> :
                   <span className="text-yellow-300"><MdSunny size={40} /></span>}
                 </span>
-                <p>{data.weather[0].main}</p>
+                <p>{data.weather[0].description}</p>
               </div>
               :
               ""}
