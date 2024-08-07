@@ -2,29 +2,55 @@
 import { useState } from 'react';
 import './App.css';
 import axios from 'axios';
-import { FaCloud } from "react-icons/fa6";
-import { MdSunny } from "react-icons/md";
+// import { FaCloud } from "react-icons/fa6";
+// import { MdSunny } from "react-icons/md";
 import { WiHumidity } from "react-icons/wi";
 import { FaWind } from "react-icons/fa6";
 
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import CityCard from './components/CityCard';
+import Loading from './components/Loading';
 
 
 function App() {
 
   const [location, setLocation] = useState('')
   const [data, setData] = useState({})
+  const [cities, setCities] = useState([]);
+  const [loding, setLoading] = useState(false);
 
 
   const url = `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=764d4cda591d5752542efbea542869ba`
 
 
+  // add city to card
+  const addCityToCard = (data) => {
+
+    const cityExists = cities.find(city => city.name === data.name);
+    if (!cityExists) {
+      setCities(prevCities => [...prevCities, data]);
+    } else {
+      toast.warn(`City ${data.name} is already in the list`);
+    }
+
+  }
+
+
+
+
+
   const searchLocation = () => {
+    setLoading(true)
     axios.get(url)
       .then(response => {
-        console.log(response.data);
+        // console.log(response.data);
         setData(response.data);
+
+        // =======================
+        addCityToCard(response.data);
+        // =======================
+
       })
       .catch(error => {
         console.error('Error fetching weather data:', error);
@@ -32,17 +58,18 @@ function App() {
           toast.error("Please enter the city name")
         } else {
           toast.error(error.response.data.message)
+
         }
 
+      })
+      .finally(() => {
+        setLoading(false);
       });
 
     setLocation('')
   }
 
 
-  const fahrenheitToCelsius = () => {
-    return (data.main.temp - 273.15).toFixed(2)
-  }
 
   return (
     <div className="app">
@@ -61,26 +88,20 @@ function App() {
           </button>
         </div>
       </div>
+      {/* ============= Loading ================ */}
+      {
+        loding && <Loading />
+        // <Loading />
+      }
+      {/*  ============= Loading ================ */}
+
+
       <div className="container">
         <div className="top flex flex-col">
-          <div className="location">
-            {data.name ? <p className="text-4xl">{data.name}</p> : "Secelet Location"}
-          </div>
-          <div className="temp text-6xl font-bold">
-            {data.name ? <h1>{fahrenheitToCelsius()}°C</h1> : ""}
+          {/* ================== City Card ====================== */}
+          <CityCard cities={cities} />
+          {/* ================== City Card ====================== */}
 
-          </div>
-          <div className="description text-2xl  mr-12">
-            {data.weather ?
-              <div className="flex flex-col items-end">
-                <span className="">{data.weather[0].main === "Clouds" ? <FaCloud size={40} /> :
-                  <span className="text-yellow-300"><MdSunny size={40} /></span>}
-                </span>
-                <p>{data.weather[0].description}</p>
-              </div>
-              :
-              ""}
-          </div>
         </div>
         {/* bottom */}
         <div className="bottom flex justify-between  px-14 py-10 rounded-xl text-center">
@@ -119,12 +140,3 @@ function App() {
 }
 
 export default App;
-
-
-
-// </>
-
-
-
-
-
